@@ -229,6 +229,31 @@ def test_organization_mismatch(base_cfg):
 
 
 @responses.activate
+def test_organization_mismatch_hints_when_value_is_not_a_uuid(base_cfg):
+    """A non-UUID organization value is almost always a display name typo'd
+    in from the Infisical UI — point the user at the fix instead of just
+    reporting the raw mismatch (#org-id-vs-name)."""
+    responses.get(f"{HOST}/api/v1/projects", json=PROJECTS)
+    base_cfg["organization"] = "Acme Corp"
+    base_cfg["env"] = {"K": "inf://my-project/prod/K"}
+    result = fetch(base_cfg)
+    assert result.error_kind is ErrorKind.NOT_CONFIGURED
+    assert "organization's UUID, not its display name" in result.error
+
+
+@responses.activate
+def test_organization_mismatch_no_hint_when_value_is_a_uuid(base_cfg):
+    """A UUID-shaped mismatch is just the wrong org, not a name/ID mixup —
+    no hint needed."""
+    responses.get(f"{HOST}/api/v1/projects", json=PROJECTS)
+    base_cfg["organization"] = "3f6c1d2e-0000-4a4a-9b9b-123456789abc"
+    base_cfg["env"] = {"K": "inf://my-project/prod/K"}
+    result = fetch(base_cfg)
+    assert result.error_kind is ErrorKind.NOT_CONFIGURED
+    assert "organization's UUID, not its display name" not in result.error
+
+
+@responses.activate
 def test_organization_match_passes(base_cfg):
     responses.get(f"{HOST}/api/v1/projects", json=PROJECTS)
     mock_secret("K", "v")

@@ -41,7 +41,7 @@ from .auth import (
     STATIC_TOKEN_ENV,
     resolve_token,
 )
-from .client import DEFAULT_HOST_URL, Deadline, InfisicalClient, Project
+from .client import _UUID_RE, DEFAULT_HOST_URL, Deadline, InfisicalClient, Project
 from .errors import InfisicalError, format_error
 from .refs import Ref, parse_ref
 
@@ -145,12 +145,26 @@ def _budget(source: SecretSource, cfg: dict) -> Deadline:
 
 
 def _check_organization(project: Project, organization: str) -> None:
-    """Fail fast when the resolved project belongs to a different org."""
+    """Fail fast when the resolved project belongs to a different org.
+
+    ``organization`` must be the org's UUID (matched against the API's
+    ``orgId``) — Infisical has no endpoint that resolves a display name
+    to that ID under typical machine-identity scopes, so a name can
+    never match here. Hint at the mistake explicitly since it looks
+    like a plausible value (e.g. the org name shown in the Infisical
+    UI) and would otherwise fail with no clue why.
+    """
     if organization and project.org_id and project.org_id != organization:
+        hint = (
+            " (this field takes the organization's UUID, not its display "
+            "name — check Infisical's org settings page for the ID)"
+            if not _UUID_RE.match(organization)
+            else ""
+        )
         raise InfisicalError(
             ErrorKind.NOT_CONFIGURED,
             f"project {project.slug or project.id!r} belongs to organization "
-            f"{project.org_id!r}, not the configured {organization!r}",
+            f"{project.org_id!r}, not the configured {organization!r}{hint}",
         )
 
 

@@ -21,9 +21,18 @@ if not HERMES_ROOT.is_dir():
         "Run scripts/fetch-hermes.sh first."
     )
 
-for path in (str(REPO_ROOT), str(HERMES_ROOT)):
-    if path not in sys.path:
-        sys.path.insert(0, path)
+# REPO_ROOT must win any name collision with the vendored checkout (both
+# trees have a top-level ``tests`` package) — insert it at the front.
+# HERMES_ROOT is appended instead of inserted: it only needs to be
+# importable (agent.secret_sources.*), never to shadow this repo's modules.
+# ``path not in sys.path`` alone isn't enough to guarantee ordering — under
+# ``python -m pytest`` the interpreter has already put REPO_ROOT (cwd) on
+# sys.path, so a plain insert(0, HERMES_ROOT) would still land before it.
+if str(REPO_ROOT) in sys.path:
+    sys.path.remove(str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT))
+if str(HERMES_ROOT) not in sys.path:
+    sys.path.append(str(HERMES_ROOT))
 
 
 import pytest  # noqa: E402  (after sys.path bootstrap)
