@@ -1,0 +1,8 @@
+name: infisical
+version: 0.1.0
+description: >
+  Secret source plugin that resolves environment variables from an Infisical
+  secret store (cloud or self-hosted) at Hermes startup. Registers a mapped
+  source ("infisical", inf:// references) and a bulk source ("infisical_bulk").
+author: Anton Babadjanov
+kind: standalone

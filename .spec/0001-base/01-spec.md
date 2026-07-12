@@ -81,9 +81,11 @@ inf://my-project/prod/db/pg-creds?type=dynamic&field=password&ttl=8h
 ```
 
 The organization is **not** part of the reference: an Infisical access token is
-already organization-scoped. An optional `organization` config key exists purely
-for validation (fail fast with a clear error if the token belongs to a different
-org).
+already organization-scoped. An optional `organization` config key (the org
+**ID**) exists purely for validation (fail fast with a clear error if a
+resolved project belongs to a different org). When set, project references —
+including raw project IDs — are always fully resolved so the check cannot be
+bypassed.
 
 ## 5. Configuration
 
@@ -94,7 +96,7 @@ secrets:
   infisical:
     enabled: true
     host_url: https://us.infisical.com        # or EU / self-hosted URL
-    organization: my-org                      # optional, validation only
+    organization: ""                          # optional org *ID*, validation only
     auth:
       method: agent                           # agent | universal-auth | token
       # method: agent
@@ -110,7 +112,8 @@ secrets:
 
   infisical_bulk:
     enabled: true
-    # host_url / auth: same keys as above; if omitted, inherit from `infisical`
+    # host_url / auth: same keys as above — Hermes hands each source only its
+    # own section, so use YAML anchors (&auth / *auth) to share the block
     project: my-project
     environment: prod
     secret_path: /backend
@@ -150,6 +153,14 @@ Feature: Mapped secret resolution
     When fetch() runs
     Then result.error_kind is EMPTY_VALUE
     And no exception propagates
+
+  Scenario: One bad reference among many becomes a warning
+    Given one binding that fails (bad ref, missing key, or per-path 403)
+    And other bindings that resolve successfully
+    When fetch() runs
+    Then the successful secrets are returned with ok status
+    And the failure appears in result.warnings
+    # Failures are promoted to result.error only when NOTHING resolved.
 
 Feature: Authentication
 
