@@ -1,0 +1,14 @@
+- Context: agentic workflow project that will perform research on the web.
+- Testing standards
+	- Tests are mandatory and MUST be written before implementation (Test-Driven Development). Unit tests, integration tests, and contract tests form the test pyramid—with the largest volume at the unit level.
+	- Test coverage MUST be ≥80% for all modules.
+	- All tests MUST pass in CI/CD before merge. Edge cases and error scenarios MUST have explicit test coverage. Flaky tests are unacceptable and MUST be fixed immediately.
+	- If writing tools for an agent, then tests can be stored in `/tests/` sub-folder of the tools' folder.
+- Code quality
+	- Prioritize readability, maintainability, and clarity.
+	- Adhere to established style guides and best practices for the target language.
+	- Prefer small, focused files.
+- Scalability
+	- Able to deal with large data sets of potentially hundreds of thousands of records
+- User Experience Consistency
+	- User-facing features and APIs MUST be consistent in naming, structure, and behavior across the entire system. Documentation MUST match implementation exactly. Error messages MUST be clear, actionable, and consistent in tone and format. Breaking changes to public APIs MUST follow semantic versioning and include migration guides. User feedback loops MUST be incorporated into feature design.
