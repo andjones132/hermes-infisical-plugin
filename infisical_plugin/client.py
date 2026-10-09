@@ -104,7 +104,9 @@ class InfisicalClient:
             ) from exc
         except requests.RequestException as exc:
             raise InfisicalError(
-                ErrorKind.NETWORK, f"{method} {path} failed to reach {self.host_url}: {exc}"
+                ErrorKind.NETWORK,
+                f"{method} {path} failed to reach configured Infisical host; "
+                "check host_url, network access, TLS trust, then retry",
             ) from exc
 
     def _check_status(

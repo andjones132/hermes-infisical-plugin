@@ -115,7 +115,9 @@ def _universal_auth_token(
         ) from exc
     except requests.RequestException as exc:
         raise InfisicalError(
-            ErrorKind.NETWORK, f"universal-auth login failed to reach {url}: {exc}"
+            ErrorKind.NETWORK,
+            "universal-auth login failed to reach configured Infisical host; "
+            "check host_url, network access, TLS trust, then retry",
         ) from exc
 
     if resp.status_code in (400, 401, 403):

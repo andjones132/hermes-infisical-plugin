@@ -47,7 +47,7 @@ def parse_ref(text: str) -> Ref:
         raise _invalid("reference is not a string")
     cleaned = text.strip()
     if not cleaned.startswith(SCHEME_PREFIX):
-        raise _invalid(f"{cleaned!r} does not start with {SCHEME_PREFIX}")
+        raise _invalid(f"reference does not start with {SCHEME_PREFIX}")
 
     rest = cleaned[len(SCHEME_PREFIX):]
     query = ""
@@ -56,11 +56,9 @@ def parse_ref(text: str) -> Ref:
 
     segments = [unquote(seg) for seg in rest.split("/")]
     if any(not seg for seg in segments):
-        raise _invalid(f"{cleaned!r} contains an empty path segment")
+        raise _invalid("reference contains an empty path segment")
     if len(segments) < 3:
-        raise _invalid(
-            f"{cleaned!r} needs at least project, environment and key"
-        )
+        raise _invalid("reference needs at least project, environment and key")
 
     project, environment = segments[0], segments[1]
     folders = segments[2:-1]
@@ -72,9 +70,7 @@ def parse_ref(text: str) -> Ref:
     field = options.get("field")
     ttl = options.get("ttl")
     if not dynamic and (field is not None or ttl is not None):
-        raise _invalid(
-            f"{cleaned!r} uses field/ttl options without type=dynamic"
-        )
+        raise _invalid("reference uses field/ttl options without type=dynamic")
 
     return Ref(
         project=project,
@@ -93,15 +89,12 @@ def _parse_options(ref_text: str, query: str) -> dict:
     options: dict = {}
     for name, value in parse_qsl(query, keep_blank_values=True):
         if name not in _ALLOWED_OPTIONS:
-            raise _invalid(f"{ref_text!r} has unknown option {name!r}")
+            raise _invalid("reference has an unsupported query option")
         if name in options:
-            raise _invalid(f"{ref_text!r} repeats option {name!r}")
+            raise _invalid("reference repeats a query option")
         if not value:
-            raise _invalid(f"{ref_text!r} has empty option {name!r}")
+            raise _invalid("reference has an empty query option value")
         options[name] = value
     if "type" in options and options["type"] != "dynamic":
-        raise _invalid(
-            f"{ref_text!r} has invalid type {options['type']!r} "
-            "(only type=dynamic is supported)"
-        )
+        raise _invalid("reference has invalid type (only type=dynamic is supported)")
     return options
